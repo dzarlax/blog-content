@@ -1,0 +1,44 @@
+name: Notify website to rebuild
+
+# Whenever an article (or any content) lands on main, ping dzarlax/website's
+# deploy workflow so the site rebuilds with the fresh module commit. Without
+# this, the website CI only fires on its own pushes — articles would sit in
+# blog-content unseen until the next unrelated website commit.
+#
+# Pairs with the `repository_dispatch` trigger in
+# dzarlax/website/.github/workflows/deploy.yml (event type: blog-content-updated).
+
+on:
+  push:
+    branches: [main]
+  # Manual fire button for when you want to force a rebuild without
+  # actually pushing a commit (rare — most often you just push content).
+  workflow_dispatch:
+
+# Single in-flight notification at a time — if you push twice in quick
+# succession, the second push cancels a still-queued first dispatch and
+# triggers a single fresh build instead of two back-to-back ones.
+concurrency:
+  group: notify-website
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger website rebuild
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          # PAT with `Actions: write` scoped to dzarlax/website only.
+          # See README in this repo for token rotation procedure.
+          token: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+          repository: dzarlax/website
+          event-type: blog-content-updated
+          # Echo the originating commit into the dispatched event so the
+          # website's deploy run shows what triggered it in the Actions UI.
+          client-payload: |-
+            {
+              "source_repo": "${{ github.repository }}",
+              "source_sha":  "${{ github.sha }}",
+              "source_ref":  "${{ github.ref }}"
+            }
