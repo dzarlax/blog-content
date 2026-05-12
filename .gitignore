@@ -1,0 +1,19 @@
+# Obsidian metadata — local-only workspace state, plugin settings, snippets.
+# Each machine has its own .obsidian config; never check it in.
+.obsidian/
+.obsidian-mobile/
+.trash/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+
+# Private writing workflow notes — kept out of the public blog-content repo.
+# The corresponding playbook lives here for personal reference only.
+_meta/
+
+# Hugo Modules: never commit go.sum from the vault side. The website repo
+# generates its own at build time, pinned via its go.mod.
+go.sum
